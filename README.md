@@ -14,6 +14,8 @@ CycleGAN은 image-to-image translation을 개선한 논문이다. 하지만 그 
 2. Sementic supervision
 3. Attention - AttentionGAN
 
+## AttentionGAN Review
+
 [AttentionGAN](https://www.notion.so/AttentionGAN-94cc9fb177844d9484714054fc509a46)
 
 ## Preliminary
