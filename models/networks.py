@@ -2,7 +2,12 @@ import torch
 import torch.nn as nn
 from torch.nn import init
 import functools
+from torch.autograd import Variable
 from torch.optim import lr_scheduler
+import numpy as np
+import torchvision.models as models
+import torchvision.transforms as transforms
+from pdb import set_trace as st
 
 
 ###############################################################################
@@ -664,8 +669,28 @@ class NLayerDiscriminator(nn.Module):
 
         self.model = nn.Sequential(*sequence)
     def forward(self, input):
-        """Standard forward."""
-        return self.model(input)
+        if len(self.gpu_ids) and isinstance(input.data, torch.cuda.FloatTensor):
+            return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
+        else:
+            """Standard forward."""
+            return self.model(input)
+        
+    def attn(self, input):
+        feat_net = nn.Sequential(*list(self.model.children())[:-1])
+        attn = feat_net.forward(input)
+        attn = attn[:,:,2:29,2:29]
+        upsampler = nn.UpsamplingBilinear2d(size=256)
+        attn = upsampler(torch.sum(torch.abs(attn),1,keepdim=True))
+        attn = attn / torch.max(attn)
+        return attn
+    
+    def pred(self, input):
+        pred = self.model(input)
+        pred[pred>1] = 1
+        pred[pred<0] = 0
+        upsampler = nn.UpsamplingBilinear2d(size=256)
+        pred = upsampler(pred)
+        return pred
 
 
 class PixelDiscriminator(nn.Module):
