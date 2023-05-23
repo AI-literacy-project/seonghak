@@ -330,6 +330,48 @@ def cal_gradient_penalty(netD, real_data, fake_data, device, type='mixed', const
     else:
         return 0.0, None
 
+class vgg_normalize:
+    def __init__(self,bz):
+        self.size = (224,224)
+        self.mean_data=0.5
+        self.std_data=0.5
+        self.mean_vgg = Variable(torch.Tensor(bz,3,1,1)).cuda()
+        self.mean_vgg[:,0]=0.485; self.mean_vgg[:,1]=0.456; self.mean_vgg[:,2]=0.406
+        self.std_vgg = Variable(torch.Tensor(bz,3,1,1)).cuda()
+        self.std_vgg[:,0]=0.229; self.std_vgg[:,1]=0.224; self.std_vgg[:,2]=0.225
+    def __call__(self, input):
+        input=F.interpolate(input, size=self.size, mode='bilinear')
+        vgg_input = input.mul(self.std_data).add(self.mean_data).sub(self.mean_vgg[:input.size(0)]).div(self.std_vgg[:input.size(0)])
+        return vgg_input
+
+class Maskloss(nn.Module):
+    def __init__(self):
+        super(Maskloss, self).__init__()
+    def forward(self, input, target, mask, size_average=True):
+        loss = (1-mask)*torch.abs(input-target)
+        if size_average:
+            return torch.mean(loss)
+        else:
+            return torch.sum(loss)
+
+# Defines the generator that consists of Resnet blocks between a few
+# downsampling/upsampling operations.
+# Code and idea originally from Justin Johnson's architecture.
+# https://github.com/jcjohnson/fast-neural-style/
+class Norm(nn.Module):
+    def __init(self):
+        super(Norm, self).__init__()
+    def forward(self, input):
+        output = torch.clamp(torch.abs(input), 0 ,1)
+        return output
+class Normalization(nn.Module):
+    """docstring for Normalization"""
+    def __init__(self):
+        super(Normalization, self).__init__()
+    def forward(self, input):
+        output = torch.div(input,torch.sum(torch.sum(input,2,keepdim=True),3,keepdim=True))
+        return output
+
 
 class ResnetGenerator(nn.Module):
     """Resnet-based generator that consists of Resnet blocks between a few downsampling/upsampling operations.
@@ -572,7 +614,7 @@ class UnetSkipConnectionBlock(nn.Module):
 class NLayerDiscriminator(nn.Module):
     """Defines a PatchGAN discriminator"""
 
-    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d):
+    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_sigmoid=False, gpu_ids = [], use_Norm=False):
         """Construct a PatchGAN discriminator
 
         Parameters:
@@ -582,6 +624,8 @@ class NLayerDiscriminator(nn.Module):
             norm_layer      -- normalization layer
         """
         super(NLayerDiscriminator, self).__init__()
+        self.gpu_ids = gpu_ids
+
         if type(norm_layer) == functools.partial:  # no need to use bias as BatchNorm2d has affine parameters
             use_bias = norm_layer.func == nn.InstanceNorm2d
         else:
@@ -610,8 +654,15 @@ class NLayerDiscriminator(nn.Module):
         ]
 
         sequence += [nn.Conv2d(ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)]  # output 1 channel prediction map
-        self.model = nn.Sequential(*sequence)
+        
 
+        if use_sigmoid:
+            sequence += [nn.sigmoid]
+        
+        if use_Norm:
+            sequence += [Norm(), Normalization()]
+
+        self.model = nn.Sequential(*sequence)
     def forward(self, input):
         """Standard forward."""
         return self.model(input)
