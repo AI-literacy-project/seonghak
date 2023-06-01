@@ -22,8 +22,11 @@ CycleGAN은 image-to-image translation을 개선한 논문이다. 하지만 그 
 
 - [x]  CycleGAN 환경설정하기
 - [x]  maps data Train해보기
-- [ ]  시각화 확인하기
+- [x]  시각화 확인하기
 - [x]  maps dataset으로 학습 시켜보기
 - [x]  horse2zebra dataset으로 학습 시켜보기
-- [ ]  maps dataset으로 학습 시켜보기
-- [ ]  network 바꿔서 hose2zebra 다시 학습시켜보기
+- [x]  maps dataset으로 학습 시켜보기
+- [x]  network 바꿔서 hose2zebra 다시 학습시켜보기
+- [x]  SSIM Loss 추가하기
+- [x]  Identity Loss 추가하기
+- [x]  추가 dataset으로 fine-tuning 
