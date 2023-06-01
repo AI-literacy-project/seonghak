@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--use_wandb",
+                "--dataroot",
+                "/home/cvmlserver6/seonghak/seonghak/datasets/horse2zebra_more",
+                "--name",
+                "horse_cyclegan_ssim_identity",
+                "--model",
+                "cycle_gan",
+                "--lambda_identity",
+                "1.0",
+                "--continue_train",
+                "--gpu_ids",
+                "0,1,2,3",
+                "--batch_size",
+                "32",
+                // "--norm",
+                // "instance"
+                "--n_epochs",
+                "500",
+                "--n_epochs_decay",
+                "500"
+            ]
+        }
+    ]
+}

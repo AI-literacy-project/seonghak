@@ -164,20 +164,20 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
         net = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids)
     elif netG == 'unet_256':
         net = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids)
-    elif netG == 'encoder':
-        net = EncoderGenerator(input_nc, ngf=64, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6, gpu_ids=gpu_ids)
-    elif netG == 'decoder':
-        net = DecoderGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6, gpu_ids=gpu_ids)
-    elif netG == 'gated_9blocks':
-        netG = GatednetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
-    elif netG == 'inserted_9blocks':
-        netG = MaskDecoder(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
-    elif netG == 'attn_in_9blocks':
-        netG = AttnInNetGenerator(input_nc, output_nc, ngf,norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
-    elif netG == 'attn_vgg_9blocks':
-        netG = AttnVGGNetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids, isTrain=isTrain)
-    elif netG == 'attn_gated_9blocks':
-        netG = AttnGatedGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
+    # elif netG == 'encoder':
+    #     net = EncoderGenerator(input_nc, ngf=64, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6, gpu_ids=gpu_ids)
+    # elif netG == 'decoder':
+    #     net = DecoderGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6, gpu_ids=gpu_ids)
+    # elif netG == 'gated_9blocks':
+    #     netG = GatednetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
+    # elif netG == 'inserted_9blocks':
+    #     netG = MaskDecoder(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
+    # elif netG == 'attn_in_9blocks':
+    #     netG = AttnInNetGenerator(input_nc, output_nc, ngf,norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
+    # elif netG == 'attn_vgg_9blocks':
+    #     netG = AttnVGGNetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids, isTrain=isTrain)
+    # elif netG == 'attn_gated_9blocks':
+    #     netG = AttnGatedGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % netG)
     return init_net(net, init_type, init_gain, gpu_ids)
@@ -443,7 +443,8 @@ class ResnetGenerator(nn.Module):
 
     def forward(self, input):
         if self.gpu_ids and isinstance(input.data, torch.cuda.FloatTensor):
-            return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
+            # return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
+            return nn.parallel.data_parallel(self.model, input, device_ids=[input.device])
         else:
             """Standard forward"""
             return self.model(input)

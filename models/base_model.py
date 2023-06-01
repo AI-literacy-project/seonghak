@@ -32,7 +32,17 @@ class BaseModel(ABC):
         self.opt = opt
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.isTrain
-        self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')  # get device name: CPU or GPU
+        cur_device = torch.cuda.current_device()
+        self.device = torch.device(cur_device) if self.gpu_ids else torch.device('cpu')
+        # self.device.cuda()
+        # self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')  # get device name: CPU or GPU
+        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # self.NGPU = torch.cuda.device_count()
+        # if NGPU > 1:
+        #     self.model = torch.nn.DataParallel(self.model, device_ids=list(range(NGPU)))
+        # torch.multiprocessing.set_start_method('spawn')
+        # self.model.to(device)
+        
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)  # save all the checkpoints to save_dir
         if opt.preprocess != 'scale_width':  # with [scale_width], input images might have different sizes, which hurts the performance of cudnn.benchmark.
             torch.backends.cudnn.benchmark = True
@@ -96,7 +106,7 @@ class BaseModel(ABC):
                 net.eval()
 
     def test(self):
-        """Forward function used in test time.
+        """Forward function used in test time. 
 
         This function wraps <forward> function in no_grad() so we don't save intermediate steps for backprop
         It also calls <compute_visuals> to produce additional visualization results

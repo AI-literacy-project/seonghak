@@ -23,6 +23,7 @@ from options.train_options import TrainOptions
 from data import create_dataset
 from models import create_model
 from util.visualizer import Visualizer
+import torch
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
@@ -32,6 +33,9 @@ if __name__ == '__main__':
 
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
+    model = torch.nn.DataParallel(module=model, device_ids=[0,1,2,3], output_device=0)
+    model = model.cuda()
+    model = model.module
     visualizer = Visualizer(opt)   # create a visualizer that display/save images and plots
     total_iters = 0                # the total number of training iterations
 
@@ -48,6 +52,8 @@ if __name__ == '__main__':
 
             total_iters += opt.batch_size
             epoch_iter += opt.batch_size
+            data['A'] = data['A'].cuda()
+            data['B'] = data['B'].cuda()
             model.set_input(data)         # unpack data from dataset and apply preprocessing
             model.optimize_parameters()   # calculate loss functions, get gradients, update network weights
 
